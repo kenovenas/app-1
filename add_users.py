@@ -7,5 +7,6 @@ def add_user(username, max_visits):
 
 # Exemplo de adição de usuários
 add_user('usuario1', 5)
+add_user('usuario4', 5)
 add_user('usuario2', 3)
 add_user('usuario3', 7)
