@@ -1,148 +1,52 @@
-from flask import Flask, request, jsonify, render_template_string
-import secrets
-import time
-import sqlite3
-from db_operations import init_db, add_initial_users, add_user, get_allowed_users
+from flask import Flask, render_template, request, redirect, url_for, session
+import random
+import string
 
 app = Flask(__name__)
-application = app
+app.secret_key = 'supersecretkey'  # Necessário para utilizar sessões
 
-# Armazenamento para chave, timestamp e usuários permitidos
-key_data = {
-    "key": None,
-    "timestamp": None
-}
+# Lista simples de usuários permitidos (pode ser personalizada ou ampliada)
+usuarios_permitidos = ["usuario1", "usuario2", "usuario3"]
 
-# Inicializa o banco de dados e adiciona usuários iniciais
-init_db()  
-add_initial_users()  
+# Função para gerar uma senha aleatória de 16 caracteres
+def gerar_senha():
+    caracteres = string.ascii_letters + string.digits
+    senha = ''.join(random.choice(caracteres) for i in range(16))
+    return senha
 
-# Função para gerar uma chave aleatória
-def generate_key():
-    return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
-
-# Função para verificar se a chave ainda é válida
-def is_key_valid():
-    if key_data["key"] and key_data["timestamp"]:
-        current_time = time.time()
-        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
-        if current_time - key_data["timestamp"] <= 300:
-            return True
-    return False
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
+    return redirect(url_for('login'))
+
+# Rota da página de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        allowed_users = get_allowed_users()  # Obtém a lista de usuários permitidos
-        if username in allowed_users:  # Verifica se o usuário está na lista permitida
-            if not is_key_valid():
-                key_data["key"] = generate_key()
-                key_data["timestamp"] = time.time()
-            return render_template_string(f'''
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Access Key</title>
-                <style>
-                    body {{
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                        position: relative;
-                        flex-direction: column;
-                    }}
-                    .content {{
-                        text-align: center;
-                        margin-top: 20px;
-                    }}
-                    .author {{
-                        position: absolute;
-                        top: 10px;
-                        left: 10px;
-                        color: #000;
-                        font-size: 18px;
-                    }}
-                    .banner-telegram {{
-                        position: absolute;
-                        top: 10px;
-                        right: 10px;
-                        background-color: #0088cc;
-                        padding: 10px;
-                        border-radius: 5px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    }}
-                    .banner-telegram a {{
-                        color: #ffcc00;
-                        text-decoration: none;
-                        font-weight: bold;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="author">Autor = Keno Venas</div>
-                <div class="banner-telegram">
-                    <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
-                </div>
-                <div class="content">
-                    <h1>Access Key</h1>
-                    <p>{key_data["key"]}</p>
-                </div>
-            </body>
-            </html>
-            ''')
-        else:
-            return "Acesso negado"
+        username = request.form['username']
 
-    return '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login</title>
-        <style>
-            .telegram-button {{
-                background-color: #0088cc;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                margin-top: 20px;
-                cursor: pointer;
-            }}
-            .telegram-button:hover {{
-                background-color: #005f99;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>Digite seu usuário</h1>
-        <form method="POST">
-            <input type="text" name="username" required>
-            <button type="submit">Acessar</button>
-        </form>
-        <p>Entrar em contato para ter acesso:</p>
-        <a href="https://t.me/Keno_venas" target="_blank" class="telegram-button">Keno Venas</a>
-    </body>
-    </html>
-    '''
+        # Valida o nome de usuário
+        if username in usuarios_permitidos:
+            session['username'] = username  # Armazena o nome do usuário na sessão
+            return redirect(url_for('acesso_key'))
 
-@app.route('/validate', methods=['POST'])
-def validate_key():
-    data = request.get_json()
-    if 'key' in data:
-        if data['key'] == key_data['key'] and is_key_valid():
-            return jsonify({"valid": True}), 200
-    return jsonify({"valid": False}), 401
+        return "Acesso negado! Usuário não encontrado."
+
+    return render_template('login.html')
+
+# Rota para gerar e exibir a senha
+@app.route('/acesso_key')
+def acesso_key():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    senha_aleatoria = gerar_senha()
+    return render_template('key.html', senha=senha_aleatoria)
+
+# Rota para logout (opcional)
+@app.route('/logout')
+def logout():
+    session.pop('username', None)  # Remove o usuário da sessão
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
