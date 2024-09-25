@@ -1,37 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesse Key</title>
-    <style>
-        .banner {
-            background-color: blue;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-        .senha {
-            font-size: 24px;
-            color: black;
-            text-align: center;
-            border: 1px solid black;
-            padding: 10px;
-            display: inline-block;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Senha Gerada</title>
 </head>
 <body>
-    <div class="banner">
-        <h2>Acesse Key</h2>
-    </div>
-
-    <div class="senha">
-        {{ senha }}
-    </div>
-
-    <br><br>
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <div class="banner">Acesse Key</div>
+    <h1>{{ senha }}</h1>
+    <a href="/logout">Logout</a>
 </body>
 </html>
