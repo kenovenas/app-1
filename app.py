@@ -14,6 +14,7 @@ key_data = {
 # Usuários permitidos e contagem de acessos
 allowed_users_template = {
     "usuario1": {"visits": 0, "max_visits": 10},
+     "usuario3": {"visits": 0, "max_visits": 10},
     "usuario2": {"visits": 0, "max_visits": 5},
     "usuario_configurado": {"visits": 0, "max_visits": 10}
 }
