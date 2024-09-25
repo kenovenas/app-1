@@ -3,7 +3,7 @@ import random
 import string
 
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta'
+app.secret_key = 'sua_chave_secreta'  # Altere para uma chave secreta mais forte
 
 # Lista de usuários permitidos
 usuarios_permitidos = {'usuario1', 'usuario2'}  # Adicione os usuários permitidos aqui
@@ -15,7 +15,7 @@ def gerar_senha():
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        usuario = request.form['usuario']
+        usuario = request.form.get('usuario')  # Use .get() para evitar KeyError
         if usuario in usuarios_permitidos and usuario not in acessos_realizados:
             session['usuario'] = usuario
             acessos_realizados.add(usuario)
