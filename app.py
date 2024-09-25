@@ -1,59 +1,36 @@
-from flask import Flask, request, jsonify, render_template_string
-import secrets
-import time
-
-app = Flask(__name__)
-application = app
-
-# Armazenamento para chave e timestamp
-key_data = {
-    "key": None,
-    "timestamp": None
-}
-
-# Usuários permitidos e contagem de acessos
-allowed_users_template = {
-    "usuario1": {"visits": 0, "max_visits": 10},
-     "usuario3": {"visits": 0, "max_visits": 10},
-    "usuario2": {"visits": 0, "max_visits": 5},
-    "usuario_configurado": {"visits": 0, "max_visits": 10}
-}
-
-# Histórico de acessos (separado para preservar contagens de acessos)
-user_access_history = {}
-
-# Função para gerar uma chave aleatória
-def generate_key():
-    return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
-
-# Função para verificar se a chave ainda é válida
-def is_key_valid():
-    if key_data["key"] and key_data["timestamp"]:
-        current_time = time.time()
-        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
-        if current_time - key_data["timestamp"] <= 300:
-            return True
-    return False
-
-# Função para garantir que o histórico de usuários seja mantido
-def sync_user_data():
+# Função para sincronizar os usuários permitidos sem resetar os acessos existentes
+def sync_user_data(allowed_users_template):
+    # Adicionar novos usuários permitidos sem alterar os existentes
     for user, data in allowed_users_template.items():
         if user not in user_access_history:
-            # Se o usuário não estiver no histórico, adicionamos sem alterar o histórico dos demais
+            # Se o usuário não está no histórico, adicionamos ele com as informações iniciais
             user_access_history[user] = {"visits": 0, "max_visits": data["max_visits"]}
+        else:
+            # Se o usuário já existe, garantimos que o número máximo de acessos é atualizado
+            user_access_history[user]["max_visits"] = data["max_visits"]
+    
     # Remover usuários do histórico que não estão mais na lista de permitidos
     for user in list(user_access_history.keys()):
         if user not in allowed_users_template:
             del user_access_history[user]
 
+# Exemplo de como o código será executado ao adicionar ou remover usuários
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    # Sincroniza os dados dos usuários com o histórico antes de processar qualquer solicitação
-    sync_user_data()
+    # Template de usuários permitidos
+    allowed_users_template = {
+        "usuario1": {"max_visits": 10},
+        "usuario2": {"max_visits": 5},
+        "usuario_configurado": {"max_visits": 10}
+    }
+    
+    # Sincroniza os dados dos usuários sem resetar os acessos
+    sync_user_data(allowed_users_template)
+    save_access_data(user_access_history)  # Salva o histórico sincronizado
 
     if request.method == 'POST':
         username = request.form.get('username')
-        if username in user_access_history:  # Verifica se o usuário está no histórico de acessos
+        if username in user_access_history:
             user_data = user_access_history[username]
 
             # Verifica se o usuário já excedeu o número máximo de acessos
@@ -75,11 +52,15 @@ def home():
 
             # Incrementa o número de acessos do usuário
             user_data["visits"] += 1
+            save_access_data(user_access_history)  # Salva a contagem de acessos
 
             # Gera uma nova chave se a anterior estiver expirada
-            if not is_key_valid():
-                key_data["key"] = generate_key()
-                key_data["timestamp"] = time.time()
+            if "key_data" not in user_data or not is_key_valid(user_data["key_data"]):
+                user_data["key_data"] = {
+                    "key": generate_key(),
+                    "timestamp": time.time()
+                }
+                save_access_data(user_access_history)  # Salva a chave gerada
 
             # Exibe a chave e as informações de acesso
             return render_template_string(f'''
@@ -133,7 +114,7 @@ def home():
                 </div>
                 <div class="content">
                     <h1>Access Key</h1>
-                    <p>Chave: {key_data["key"]}</p>
+                    <p>Chave: {user_data["key_data"]["key"]}</p>
                     <p>Acessos Realizados: {user_data["visits"]} de {user_data["max_visits"]}</p>
                 </div>
             </body>
@@ -180,14 +161,3 @@ def home():
     </body>
     </html>
     '''
-
-@app.route('/validate', methods=['POST'])
-def validate_key():
-    data = request.get_json()
-    if 'key' in data:
-        if data['key'] == key_data['key'] and is_key_valid():
-            return jsonify({"valid": True}), 200
-    return jsonify({"valid": False}), 401
-
-if __name__ == '__main__':
-    app.run(debug=True)
