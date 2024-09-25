@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, url_for, session
 import random
 import string
 
@@ -6,31 +6,35 @@ app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta'
 
 # Lista de usuários permitidos
-usuarios_permitidos = ['usuario1', 'usuario2']
+usuarios_permitidos = {'usuario1', 'usuario2'}  # Adicione os usuários permitidos aqui
+acessos_realizados = set()  # Para registrar usuários que já acessaram
 
-# Função para gerar senha aleatória
-def gerar_senha(tamanho=16):
-    caracteres = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(caracteres) for _ in range(tamanho))
+def gerar_senha():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
-@app.route('/')
-def home():
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        usuario = request.form['usuario']
+        if usuario in usuarios_permitidos and usuario not in acessos_realizados:
+            session['usuario'] = usuario
+            acessos_realizados.add(usuario)
+            return redirect(url_for('key'))
+        return 'Usuário inválido ou já acessado.'
+
     return render_template('login.html')
 
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form['username']
-    if username in usuarios_permitidos:
-        session['username'] = username
-        senha_gerada = gerar_senha()
-        return render_template('key_page.html', senha=senha_gerada)
-    else:
-        return redirect('/')
+@app.route('/key')
+def key():
+    if 'usuario' in session:
+        senha = gerar_senha()
+        return render_template('key.html', senha=senha)
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
-    return redirect('/')
+    session.pop('usuario', None)
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
