@@ -50,6 +50,7 @@ def home():
     # Template de usuários permitidos
     allowed_users_template = {
         "usuario1": {"max_visits": 10},
+        "usuario3": {"max_visits": 10},
         "usuario2": {"max_visits": 5},
         "usuario_configurado": {"max_visits": 10}
     }
