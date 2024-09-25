@@ -1,52 +1,36 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session
 import random
 import string
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Necessário para utilizar sessões
+app.secret_key = 'sua_chave_secreta'
 
-# Lista simples de usuários permitidos
-usuarios_permitidos = ["usuario1", "usuario2", "usuario3"]
+# Lista de usuários permitidos
+usuarios_permitidos = ['usuario1', 'usuario2']
 
-# Função para gerar uma senha aleatória de 16 caracteres
-def gerar_senha():
-    caracteres = string.ascii_letters + string.digits
-    senha = ''.join(random.choice(caracteres) for _ in range(16))
-    return senha
+# Função para gerar senha aleatória
+def gerar_senha(tamanho=16):
+    caracteres = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(caracteres) for _ in range(tamanho))
 
 @app.route('/')
 def home():
-    return redirect(url_for('login'))
-
-# Rota da página de login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-
-        # Valida o nome de usuário
-        if username in usuarios_permitidos:
-            session['username'] = username  # Armazena o nome do usuário na sessão
-            return redirect(url_for('acesso_key'))
-
-        return "Acesso negado! Usuário não encontrado."
-
     return render_template('login.html')
 
-# Rota para gerar e exibir a senha
-@app.route('/acesso_key')
-def acesso_key():
-    if 'username' not in session:
-        return redirect(url_for('login'))
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    if username in usuarios_permitidos:
+        session['username'] = username
+        senha_gerada = gerar_senha()
+        return render_template('key_page.html', senha=senha_gerada)
+    else:
+        return redirect('/')
 
-    senha_aleatoria = gerar_senha()
-    return render_template('key.html', senha=senha_aleatoria)
-
-# Rota para logout
 @app.route('/logout')
 def logout():
-    session.pop('username', None)  # Remove o usuário da sessão
-    return redirect(url_for('login'))
+    session.pop('username', None)
+    return redirect('/')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
