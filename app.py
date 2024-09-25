@@ -5,13 +5,13 @@ import string
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Necessário para utilizar sessões
 
-# Lista simples de usuários permitidos (pode ser personalizada ou ampliada)
+# Lista simples de usuários permitidos
 usuarios_permitidos = ["usuario1", "usuario2", "usuario3"]
 
 # Função para gerar uma senha aleatória de 16 caracteres
 def gerar_senha():
     caracteres = string.ascii_letters + string.digits
-    senha = ''.join(random.choice(caracteres) for i in range(16))
+    senha = ''.join(random.choice(caracteres) for _ in range(16))
     return senha
 
 @app.route('/')
@@ -42,11 +42,11 @@ def acesso_key():
     senha_aleatoria = gerar_senha()
     return render_template('key.html', senha=senha_aleatoria)
 
-# Rota para logout (opcional)
+# Rota para logout
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # Remove o usuário da sessão
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
