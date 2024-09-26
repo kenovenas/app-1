@@ -16,7 +16,7 @@ user_access_count = {}
 
 # Usuários permitidos
 allowed_users = {
-    "pstfr", 
+     
     "emda",
     "wndrsn",
     "thglm",
