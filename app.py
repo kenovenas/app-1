@@ -43,8 +43,10 @@ def home():
 
     if request.method == 'POST':
         username = request.form.get('username')
+        
         if username in users:  # Verifica se o usuário está na lista permitida
-            user_access_count = access_data.get(username, 0)  # Obtem a contagem atual de acessos
+            # Obtém a contagem atual de acessos, ou inicia em 0 se não existir
+            user_access_count = access_data.get(username, 0)  
             if user_access_count < max_access:  # Verifica se o usuário atingiu o limite de acessos
                 key_data = {"key": generate_key(), "timestamp": time.time()}
 
