@@ -30,20 +30,11 @@ def load_accesses():
 # Função para salvar acessos em um arquivo
 def save_accesses(access_data):
     with open(ACESSOS_FILE, 'w') as f:
-        json.dump(access_data, f)
+        json.dump(access_data, f, indent=4)  # Use indent para formatação legível
 
 # Função para gerar uma chave aleatória
 def generate_key():
     return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
-
-# Função para verificar se a chave ainda é válida
-def is_key_valid(key_data):
-    if key_data["key"] and key_data["timestamp"]:
-        current_time = time.time()
-        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
-        if current_time - key_data["timestamp"] <= 300:
-            return True
-    return False
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -53,11 +44,12 @@ def home():
     if request.method == 'POST':
         username = request.form.get('username')
         if username in users:  # Verifica se o usuário está na lista permitida
-            user_access_count = access_data.get(username, 0)
+            user_access_count = access_data.get(username, 0)  # Obtem a contagem atual de acessos
             if user_access_count < max_access:  # Verifica se o usuário atingiu o limite de acessos
                 key_data = {"key": generate_key(), "timestamp": time.time()}
 
-                access_data[username] = user_access_count + 1  # Incrementa a contagem de acessos do usuário
+                # Incrementa a contagem de acessos do usuário
+                access_data[username] = user_access_count + 1  
                 save_accesses(access_data)  # Salva o novo estado de acessos
 
                 return render_template_string(f'''
