@@ -36,7 +36,7 @@ allowed_users = {
     "rflcr": 0,
     "cnt": 0,
     "wbss": 0,
-    "zr1": 0,
+   
     "nbsbt": 0,
 }  # Adicione os usuários permitidos aqui
 
