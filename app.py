@@ -1,17 +1,12 @@
 from flask import Flask, request, jsonify, render_template_string
 import secrets
-import time
-import json
 import os
+import acessos  # Importa o módulo de acessos
 
 app = Flask(__name__)
 
-# Nome dos arquivos para usuários e acessos
 USUARIOS_FILE = 'usuarios.txt'
-ACESSOS_FILE = 'acessos.json'
-
-# Limite máximo de acessos por usuário
-max_access = 5
+MAX_ACESSOS = 5
 
 # Função para carregar usuários de um arquivo
 def load_users():
@@ -20,39 +15,26 @@ def load_users():
     with open(USUARIOS_FILE, 'r') as f:
         return [line.strip() for line in f.readlines()]
 
-# Função para carregar acessos de um arquivo
-def load_accesses():
-    if not os.path.exists(ACESSOS_FILE):
-        return {}
-    with open(ACESSOS_FILE, 'r') as f:
-        return json.load(f)
-
-# Função para salvar acessos em um arquivo
-def save_accesses(access_data):
-    with open(ACESSOS_FILE, 'w') as f:
-        json.dump(access_data, f, indent=4)  # Use indent para formatação legível
-
 # Função para gerar uma chave aleatória
 def generate_key():
     return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    users = load_users()
-    access_data = load_accesses()
+    users = load_users()  # Carrega os usuários permitidos
+    access_data = acessos.load_accesses()  # Carrega a contagem de acessos
 
     if request.method == 'POST':
         username = request.form.get('username')
-        
-        if username in users:  # Verifica se o usuário está na lista permitida
-            # Obtém a contagem atual de acessos, ou inicia em 0 se não existir
-            user_access_count = access_data.get(username, 0)  
-            if user_access_count < max_access:  # Verifica se o usuário atingiu o limite de acessos
-                key_data = {"key": generate_key(), "timestamp": time.time()}
 
-                # Incrementa a contagem de acessos do usuário
-                access_data[username] = user_access_count + 1  
-                save_accesses(access_data)  # Salva o novo estado de acessos
+        if username in users:  # Verifica se o usuário está na lista permitida
+            user_access_count = access_data.get(username, 0)  # Obtém a contagem atual de acessos
+            
+            if user_access_count < MAX_ACESSOS:  # Verifica se o usuário atingiu o limite de acessos
+                key_data = {"key": generate_key()}
+
+                # Atualiza a contagem de acessos do usuário
+                acessos.update_access(username)
 
                 return render_template_string(f'''
                 <!DOCTYPE html>
@@ -65,7 +47,7 @@ def home():
                 <body>
                     <h1>Access Key</h1>
                     <p>{key_data["key"]}</p>
-                    <p>Acesso realizado: {access_data[username]}/{max_access}</p>
+                    <p>Acesso realizado: {access_data[username] + 1}/{MAX_ACESSOS}</p>
                 </body>
                 </html>
                 ''')
