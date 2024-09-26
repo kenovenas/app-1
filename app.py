@@ -1,60 +1,143 @@
 from flask import Flask, request, jsonify, render_template_string
 import secrets
+import time
+import json
 import os
-import acessos  # Importa o módulo de acessos
 
 app = Flask(__name__)
 
+# Caminhos dos arquivos
 USUARIOS_FILE = 'usuarios.txt'
-MAX_ACESSOS = 5
+ACESSOS_FILE = 'acessos.json'
 
-# Função para carregar usuários de um arquivo
+# Carregar usuários permitidos
 def load_users():
-    if not os.path.exists(USUARIOS_FILE):
-        return []
     with open(USUARIOS_FILE, 'r') as f:
-        return [line.strip() for line in f.readlines()]
+        return set(line.strip() for line in f.readlines())
+
+# Carregar histórico de acessos
+def load_access_history():
+    if os.path.exists(ACESSOS_FILE):
+        with open(ACESSOS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+# Salvar histórico de acessos
+def save_access_history(history):
+    with open(ACESSOS_FILE, 'w') as f:
+        json.dump(history, f)
+
+# Gera chave e controla acessos
+key_data = {
+    "key": None,
+    "timestamp": None
+}
+
+allowed_users = load_users()  # Carrega usuários permitidos
+access_history = load_access_history()  # Carrega histórico de acessos
 
 # Função para gerar uma chave aleatória
 def generate_key():
     return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
 
+# Função para verificar se a chave ainda é válida
+def is_key_valid():
+    if key_data["key"] and key_data["timestamp"]:
+        current_time = time.time()
+        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
+        if current_time - key_data["timestamp"] <= 300:
+            return True
+    return False
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    users = load_users()  # Carrega os usuários permitidos
-    access_data = acessos.load_accesses()  # Carrega a contagem de acessos
-
     if request.method == 'POST':
         username = request.form.get('username')
+        if username in allowed_users:  # Verifica se o usuário está na lista permitida
+            # Inicializa contagem de acessos se o usuário não existir no histórico
+            if username not in access_history:
+                access_history[username] = 0
 
-        if username in users:  # Verifica se o usuário está na lista permitida
-            user_access_count = access_data.get(username, 0)  # Obtém a contagem atual de acessos
-            
-            if user_access_count < MAX_ACESSOS:  # Verifica se o usuário atingiu o limite de acessos
-                key_data = {"key": generate_key()}
+            # Verifica limite de acessos (por exemplo, 5 acessos)
+            if access_history[username] >= 5:
+                return "Acesso máximo atingido"
 
-                # Atualiza a contagem de acessos do usuário
-                acessos.update_access(username)
+            # Se a chave não for válida, gere uma nova
+            if not is_key_valid():
+                key_data["key"] = generate_key()
+                key_data["timestamp"] = time.time()
 
-                return render_template_string(f'''
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Access Key</title>
-                </head>
-                <body>
+            # Atualiza contagem de acessos
+            access_history[username] += 1
+            save_access_history(access_history)  # Salva histórico atualizado
+
+            return render_template_string(f'''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Access Key</title>
+                <style>
+                    body {{
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        position: relative;
+                        flex-direction: column;
+                    }}
+                    .content {{
+                        text-align: center;
+                        margin-top: 20px;
+                    }}
+                    .author {{
+                        position: absolute;
+                        top: 10px;
+                        left: 10px;
+                        color: #000;
+                        font-size: 18px;
+                    }}
+                    .banner-telegram {{
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background-color: #0088cc;
+                        padding: 10px;
+                        border-radius: 5px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    }}
+                    .banner-telegram a {{
+                        color: #ffcc00;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }}
+                    .ad-banner {{
+                        width: 728px;
+                        height: 90px;
+                        background-color: #f4f4f4;
+                        padding: 10px;
+                        text-align: center;
+                        position: fixed;
+                        bottom: 0;
+                        box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="author">Autor = Keno Venas</div>
+                <div class="banner-telegram">
+                    <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
+                </div>
+                <div class="content">
                     <h1>Access Key</h1>
                     <p>{key_data["key"]}</p>
-                    <p>Acesso realizado: {access_data[username] + 1}/{MAX_ACESSOS}</p>
-                </body>
-                </html>
-                ''')
-
-            else:
-                return "Limite de acessos atingido. Acesso negado."
-
+                    <p>Acessos feitos: {access_history[username]}</p>
+                </div>
+            </body>
+            </html>
+            ''')
         else:
             return "Acesso negado"
 
@@ -65,6 +148,24 @@ def home():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login</title>
+        <style>
+            .telegram-button {{
+                background-color: #0088cc;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 20px;
+                cursor: pointer;
+            }}
+            .telegram-button:hover {{
+                background-color: #005f99;
+            }}
+        </style>
     </head>
     <body>
         <h1>Digite seu usuário</h1>
@@ -72,6 +173,8 @@ def home():
             <input type="text" name="username" required>
             <button type="submit">Acessar</button>
         </form>
+        <p>Entrar em contato para ter acesso:</p>
+        <a href="https://t.me/Keno_venas" target="_blank" class="telegram-button">Keno Venas</a>
     </body>
     </html>
     '''
@@ -80,8 +183,8 @@ def home():
 def validate_key():
     data = request.get_json()
     if 'key' in data:
-        # O código para validar a chave pode ser adicionado aqui
-        return jsonify({"valid": True}), 200
+        if data['key'] == key_data['key'] and is_key_valid():
+            return jsonify({"valid": True}), 200
     return jsonify({"valid": False}), 401
 
 if __name__ == '__main__':
