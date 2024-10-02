@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Importa CORS
 import secrets
 import time
 
 app = Flask(__name__)
-CORS(app)  # Habilita CORS para todas as rotas
+application = app
 
 # Armazenamento para chave e seu timestamp
 key_data = {
@@ -72,20 +71,10 @@ def home():
                 text-decoration: none;
                 font-weight: bold;
             }}
-            .ad-banner {{
-                width: 728px;
-                height: 90px;
-                background-color: #f4f4f4;
-                padding: 10px;
-                text-align: center;
-                position: fixed;
-                bottom: 0;
-                box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
-            }}
         </style>
     </head>
     <body>
-        <div class="author">Autor = Keno Venas</div>
+        <div class="author">Autor: Keno Venas</div>
         <div class="banner-telegram">
             <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
         </div>
@@ -93,28 +82,6 @@ def home():
             <h1>Access Key</h1>
             <p>{key_data["key"]}</p>
         </div>
-
-        <!-- Script da Hydro -->
-        <script id="hydro_config" type="text/javascript">
-            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
-        </script>
-        <script id="hydro_script" src="https://track.hydro.online/"></script>
-
-        <!-- anúncios -->
-        <div class="ad-banner">
-            <script type="text/javascript">
-                atOptions = {{
-                    'key' : '78713e6d4e36d5a549e9864674183de6',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {{}}
-                }};
-            </script>
-            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
-        </div>
-        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
-       
     </body>
     </html>
     '''
@@ -122,9 +89,12 @@ def home():
 @app.route('/validate', methods=['POST'])
 def validate_key():
     data = request.get_json()
+    print("Dados recebidos:", data)  # Para depuração
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
+            print("Chave válida:", data['key'])  # Para depuração
             return jsonify({"valid": True}), 200
+    print("Chave inválida:", data['key'])  # Para depuração
     return jsonify({"valid": False}), 401
 
 if __name__ == '__main__':
