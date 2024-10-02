@@ -1,40 +1,16 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importa CORS
 import secrets
 import time
-import json
-import os
 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para todas as rotas
 
-# Caminhos dos arquivos
-USUARIOS_FILE = 'usuarios.txt'
-ACESSOS_FILE = 'acessos.json'
-
-# Carregar usuários permitidos
-def load_users():
-    with open(USUARIOS_FILE, 'r') as f:
-        return set(line.strip() for line in f.readlines())
-
-# Carregar histórico de acessos
-def load_access_history():
-    if os.path.exists(ACESSOS_FILE):
-        with open(ACESSOS_FILE, 'r') as f:
-            return json.load(f)
-    return {}
-
-# Salvar histórico de acessos
-def save_access_history(history):
-    with open(ACESSOS_FILE, 'w') as f:
-        json.dump(history, f)
-
-# Gera chave e controla acessos
+# Armazenamento para chave e seu timestamp
 key_data = {
     "key": None,
     "timestamp": None
 }
-
-allowed_users = load_users()  # Carrega usuários permitidos
-access_history = load_access_history()  # Carrega histórico de acessos
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -49,132 +25,96 @@ def is_key_valid():
             return True
     return False
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        if username in allowed_users:  # Verifica se o usuário está na lista permitida
-            # Inicializa contagem de acessos se o usuário não existir no histórico
-            if username not in access_history:
-                access_history[username] = 0
-
-            # Verifica limite de acessos (por exemplo, 5 acessos)
-            if access_history[username] >= 5:
-                return "Acesso máximo atingido"
-
-            # Se a chave não for válida, gere uma nova
-            if not is_key_valid():
-                key_data["key"] = generate_key()
-                key_data["timestamp"] = time.time()
-
-            # Atualiza contagem de acessos
-            access_history[username] += 1
-            save_access_history(access_history)  # Salva histórico atualizado
-
-            return render_template_string(f'''
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Access Key</title>
-                <style>
-                    body {{
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                        position: relative;
-                        flex-direction: column;
-                    }}
-                    .content {{
-                        text-align: center;
-                        margin-top: 20px;
-                    }}
-                    .author {{
-                        position: absolute;
-                        top: 10px;
-                        left: 10px;
-                        color: #000;
-                        font-size: 18px;
-                    }}
-                    .banner-telegram {{
-                        position: absolute;
-                        top: 10px;
-                        right: 10px;
-                        background-color: #0088cc;
-                        padding: 10px;
-                        border-radius: 5px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    }}
-                    .banner-telegram a {{
-                        color: #ffcc00;
-                        text-decoration: none;
-                        font-weight: bold;
-                    }}
-                    .ad-banner {{
-                        width: 728px;
-                        height: 90px;
-                        background-color: #f4f4f4;
-                        padding: 10px;
-                        text-align: center;
-                        position: fixed;
-                        bottom: 0;
-                        box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="author">Autor = Keno Venas</div>
-                <div class="banner-telegram">
-                    <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
-                </div>
-                <div class="content">
-                    <h1>Access Key</h1>
-                    <p>{key_data["key"]}</p>
-                    <p>Acessos feitos: {access_history[username]}</p>
-                </div>
-            </body>
-            </html>
-            ''')
-        else:
-            return "Acesso negado"
-
-    return '''
+    if not is_key_valid():
+        key_data["key"] = generate_key()
+        key_data["timestamp"] = time.time()
+    return f'''
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login</title>
+        <title>Access Key</title>
         <style>
-            .telegram-button {{
-                background-color: #0088cc;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                margin-top: 20px;
-                cursor: pointer;
+            body {{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                position: relative;
+                flex-direction: column;
             }}
-            .telegram-button:hover {{
-                background-color: #005f99;
+            .content {{
+                text-align: center;
+                margin-top: 20px;
+            }}
+            .author {{
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                color: #000;
+                font-size: 18px;
+            }}
+            .banner-telegram {{
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background-color: #0088cc;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }}
+            .banner-telegram a {{
+                color: #ffcc00;
+                text-decoration: none;
+                font-weight: bold;
+            }}
+            .ad-banner {{
+                width: 728px;
+                height: 90px;
+                background-color: #f4f4f4;
+                padding: 10px;
+                text-align: center;
+                position: fixed;
+                bottom: 0;
+                box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
             }}
         </style>
     </head>
     <body>
-        <h1>Digite seu usuário</h1>
-        <form method="POST">
-            <input type="text" name="username" required>
-            <button type="submit">Acessar</button>
-        </form>
-        <p>Entrar em contato para ter acesso:</p>
-        <a href="https://t.me/Keno_venas" target="_blank" class="telegram-button">Keno Venas</a>
+        <div class="author">Autor = Keno Venas</div>
+        <div class="banner-telegram">
+            <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
+        </div>
+        <div class="content">
+            <h1>Access Key</h1>
+            <p>{key_data["key"]}</p>
+        </div>
+
+        <!-- Script da Hydro -->
+        <script id="hydro_config" type="text/javascript">
+            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
+        </script>
+        <script id="hydro_script" src="https://track.hydro.online/"></script>
+
+        <!-- anúncios -->
+        <div class="ad-banner">
+            <script type="text/javascript">
+                atOptions = {{
+                    'key' : '78713e6d4e36d5a549e9864674183de6',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {{}}
+                }};
+            </script>
+            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
+        </div>
+        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
+       
     </body>
     </html>
     '''
