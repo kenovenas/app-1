@@ -1,11 +1,10 @@
-from flask import Flask, request, jsonify, session, redirect, url_for
+from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
 import secrets
 import time
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = 'supersecretkey'  # Chave secreta para sessões
 
 # Armazenamento para chave e seu timestamp
 key_data = {
@@ -32,8 +31,6 @@ def is_key_valid():
 # Rota para a página de login
 @app.route('/')
 def login():
-    if 'user' in session:
-        return redirect(url_for('home'))  # Redireciona para a página principal se já estiver logado
     return '''
     <!DOCTYPE html>
     <html lang="en">
@@ -80,7 +77,6 @@ def login():
 def authenticate():
     username = request.form['username']
     if username in allowed_users:
-        session['user'] = username
         return redirect(url_for('home'))
     return '''
     <h1>Usuário não autorizado!</h1>
@@ -90,7 +86,8 @@ def authenticate():
 # Rota para a página principal que exibe a chave após login
 @app.route('/home')
 def home():
-    if 'user' not in session:
+    # Como não mantemos sessões, precisamos verificar o login toda vez
+    if request.referrer is None or not request.referrer.endswith('/login'):
         return redirect(url_for('login'))
 
     if not is_key_valid():
@@ -125,77 +122,21 @@ def home():
                 color: #000;
                 font-size: 18px;
             }}
-            .banner-telegram {{
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background-color: #0088cc;
-                padding: 10px;
-                border-radius: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }}
-            .banner-telegram a {{
-                color: #ffcc00;
-                text-decoration: none;
-                font-weight: bold;
-            }}
-            .ad-banner {{
-                width: 728px;
-                height: 90px;
-                background-color: #f4f4f4;
-                padding: 10px;
-                text-align: center;
-                position: fixed;
-                bottom: 0;
-                box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
-            }}
         </style>
     </head>
     <body>
-        <div class="author">Autor = Keno Venas</div>
-        <div class="banner-telegram">
-            <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
-        </div>
+        <div class="author">Autor: Keno Venas</div>
         <div class="content">
             <h1>Access Key</h1>
             <p>{key_data["key"]}</p>
         </div>
-
-        <!-- Script da Hydro -->
-        <script id="hydro_config" type="text/javascript">
-            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
-        </script>
-        <script id="hydro_script" src="https://track.hydro.online/"></script>
-
-        <!-- anuncios -->
-        <div class="ad-banner">
-            <script type="text/javascript">
-                atOptions = {{
-                    'key' : '78713e6d4e36d5a549e9864674183de6',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {{}}
-                }};
-            </script>
-            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
-        </div>
-        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
     '''
 
-# Rota para fazer logout
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
+# Rota para validar a chave (usado pela Tampermonkey script, por exemplo)
 @app.route('/validate', methods=['POST'])
 def validate_key():
-    if 'user' not in session:
-        return jsonify({"error": "Unauthorized"}), 403
-
     data = request.get_json()
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
