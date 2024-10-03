@@ -9,7 +9,7 @@ CORS(app)  # Ativar CORS
 application = app
 
 # Armazenamento de usuários válidos
-valid_users = ["usuario1", "usuario2"]  # Adicione os usuários aqui
+valid_users = [ "usuario2"]  # Adicione os usuários aqui
 
 # Armazenamento para chave e seu timestamp
 key_data = {
