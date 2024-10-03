@@ -28,7 +28,6 @@ def is_key_valid():
             return True
     return False
 
-# Página de login
 @app.route('/')
 def login():
     return '''
@@ -39,39 +38,41 @@ def login():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login</title>
         <style>
-            body {{
+            body {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 height: 100vh;
                 margin: 0;
-                flex-direction: column;
                 background-color: #f4f4f9;
-            }}
-            .login-container {{
+            }
+            .login-container {
                 text-align: center;
                 padding: 20px;
                 border-radius: 10px;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 background-color: white;
                 width: 300px;
-            }}
-            .login-container h1 {{
-                margin-bottom: 20px;
-            }}
-            .login-container form {{
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-            }}
-            .login-container input {{
+            }
+            .login-container h1 {
+                margin-bottom: 20px;
+            }
+            .login-container form {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+            .login-container input {
                 padding: 10px;
                 margin-bottom: 10px;
                 width: 100%;
                 border: 1px solid #ccc;
                 border-radius: 5px;
-            }}
-            .login-container button {{
+            }
+            .login-container button {
                 padding: 10px 20px;
                 background-color: #0088cc;
                 color: white;
@@ -79,18 +80,18 @@ def login():
                 border-radius: 5px;
                 cursor: pointer;
                 width: 100%;
-            }}
-            .login-container button:hover {{
+            }
+            .login-container button:hover {
                 background-color: #005f99;
-            }}
-            .contact {{
+            }
+            .contact {
                 margin-top: 20px;
-            }}
-            .author-link {{
+            }
+            .author-link {
                 color: #0088cc;
                 text-decoration: none;
                 font-weight: bold;
-            }}
+            }
         </style>
     </head>
     <body>
@@ -108,6 +109,7 @@ def login():
     </body>
     </html>
     '''
+
 
 # Rota para autenticação
 @app.route('/login', methods=['POST'])
