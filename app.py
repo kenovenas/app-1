@@ -1,34 +1,27 @@
 from flask import Flask, request, redirect, url_for, session, jsonify
-from flask_cors import CORS  # Importar CORS
+from flask_cors import CORS
 import secrets
 import time
 
 app = Flask(__name__)
-CORS(app)  # Ativar CORS
-app.secret_key = 'your_secret_key'  # Necessário para usar sessões
+CORS(app)
+app.secret_key = 'your_secret_key'
 
-# Armazenamento para chave e seu timestamp
 key_data = {
     "key": None,
     "timestamp": None
 }
 
-# Dicionário para armazenar o número de acessos de cada usuário
 user_access_count = {}
+allowed_users = ['user1', 'user2', 'Keno Venas']  
+MAX_ACCESS = 10
 
-# Array de usuários autorizados
-allowed_users = ['user1', 'user2', 'Keno Venas']  # Substitua por seus usuários autorizados
-MAX_ACCESS = 10  # Máximo de acessos permitidos
-
-# Função para gerar uma chave aleatória
 def generate_key():
-    return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
+    return secrets.token_hex(16)
 
-# Função para verificar se a chave ainda é válida
 def is_key_valid():
     if key_data["key"] and key_data["timestamp"]:
         current_time = time.time()
-        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
         if current_time - key_data["timestamp"] <= 300:
             return True
     return False
@@ -40,12 +33,11 @@ def login():
         if username in allowed_users:
             session['username'] = username
             if username not in user_access_count:
-                user_access_count[username] = 0  # Inicializa contagem de acessos
-            return redirect(url_for('home'))  # Redireciona para a página principal
+                user_access_count[username] = 0
+            return redirect(url_for('home'))
         else:
-            return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
+            return "Nome de usuário inválido", 401
     
-    # Página de login com adição da frase e link
     return '''
     <!DOCTYPE html>
     <html lang="en">
@@ -67,8 +59,8 @@ def login():
                 margin-top: 20px;
             }
             .contact-info a {
-                color: blue; /* Cor do link */
-                text-decoration: underline; /* Sublinhado para o link */
+                color: blue; 
+                text-decoration: underline; 
             }
         </style>
     </head>
@@ -90,20 +82,20 @@ def login():
 @app.route('/')
 def home():
     if 'username' not in session:
-        return redirect(url_for('login'))  # Redireciona para a página de login
+        return redirect(url_for('login')) 
     
     username = session['username']
 
-    # Verifica se o usuário atingiu o limite de acessos
+    if username not in user_access_count:
+        user_access_count[username] = 0
+
     if user_access_count[username] >= MAX_ACCESS:
         return "Acesso negado: limite de chaves solicitadas atingido.", 403
 
-    # Verifica a validade da chave
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
 
-    # Incrementa o contador de acessos
     user_access_count[username] += 1
     
     return f'''
