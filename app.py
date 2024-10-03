@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify, session, redirect, url_for
-from flask_cors import CORS
+from flask import Flask, request, redirect, url_for, session, jsonify
+from flask_cors import CORS  # Importar CORS
 import secrets
 import time
 
 app = Flask(__name__)
 CORS(app)  # Ativar CORS
-app.secret_key = 'sua_chave_secreta'  # Adicione uma chave secreta para as sessões
+app.secret_key = 'your_secret_key'  # Necessário para usar sessões
 
 # Armazenamento para chave e seu timestamp
 key_data = {
@@ -13,8 +13,8 @@ key_data = {
     "timestamp": None
 }
 
-# Array de usuários permitidos
-allowed_users = ['usuario1', 'usuario2', 'usuario3']  # Adicione seus usuários aqui
+# Array de usuários autorizados
+allowed_users = ['user1', 'user2', 'Keno Venas']  # Substitua por seus usuários autorizados
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -29,19 +29,17 @@ def is_key_valid():
             return True
     return False
 
-# Rota de login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
-        # Verifica se o nome de usuário está na lista de usuários permitidos
         if username in allowed_users:
             session['username'] = username
             return redirect(url_for('home'))  # Redireciona para a página principal
         else:
             return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
     
-    # Página de login
+    # Página de login com adição da frase e link
     return '''
     <!DOCTYPE html>
     <html lang="en">
@@ -49,6 +47,24 @@ def login():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login</title>
+        <style>
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                flex-direction: column;
+                text-align: center;
+            }
+            .contact-info {
+                margin-top: 20px;
+            }
+            .contact-info a {
+                color: blue; /* Cor do link */
+                text-decoration: underline; /* Sublinhado para o link */
+            }
+        </style>
     </head>
     <body>
         <h2>Login</h2>
@@ -57,17 +73,19 @@ def login():
             <input type="text" id="username" name="username" required>
             <button type="submit">Login</button>
         </form>
+        <div class="contact-info">
+            <p>Para ter acesso entre em contato:</p>
+            <p><a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
+        </div>
     </body>
     </html>
     '''
 
-# Rota principal
 @app.route('/')
 def home():
     if 'username' not in session:
-        return redirect(url_for('login'))  # Redireciona para a página de login se não estiver logado
+        return redirect(url_for('login'))  # Redireciona para a página de login
     
-    # Verifica se a chave é válida antes de gerá-la
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
@@ -136,26 +154,7 @@ def home():
             <p>{key_data["key"]}</p>
         </div>
 
-        <!-- Script da Hydro -->
-        <script id="hydro_config" type="text/javascript">
-            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
-        </script>
-        <script id="hydro_script" src="https://track.hydro.online/"></script>
 
-        <!-- anuncios -->
-        <div class="ad-banner">
-            <script type="text/javascript">
-                atOptions = {{
-                    'key' : '78713e6d4e36d5a549e9864674183de6',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {{}}
-                }};
-            </script>
-            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
-        </div>
-        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
     '''
@@ -166,7 +165,6 @@ def validate_key():
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
             return jsonify({"valid": True}), 200
-    print("Chave inválida ou expirada.")  # Mensagem de erro para debug
     return jsonify({"valid": False}), 401
 
 if __name__ == '__main__':
