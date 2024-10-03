@@ -1,11 +1,11 @@
-from flask import Flask, request, redirect, url_for, session, jsonify
-from flask_cors import CORS  # Importar CORS
+from flask import Flask, request, jsonify, session, redirect, url_for
+from flask_cors import CORS
 import secrets
 import time
 
 app = Flask(__name__)
-CORS(app)  # Ativar CORS
-app.secret_key = 'your_secret_key'  # Necessário para usar sessões
+CORS(app)
+app.secret_key = 'supersecretkey'  # Chave secreta para sessões
 
 # Armazenamento para chave e seu timestamp
 key_data = {
@@ -13,8 +13,8 @@ key_data = {
     "timestamp": None
 }
 
-# Array de usuários autorizados
-allowed_users = ['user1', 'user2', 'Keno Venas']  # Substitua por seus usuários autorizados
+# Lista de usuários permitidos
+allowed_users = ["user1", "user2", "kenovenas"]
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -29,17 +29,11 @@ def is_key_valid():
             return True
     return False
 
-@app.route('/login', methods=['GET', 'POST'])
+# Rota para a página de login
+@app.route('/')
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        if username in allowed_users:
-            session['username'] = username
-            return redirect(url_for('home'))  # Redireciona para a página principal
-        else:
-            return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
-    
-    # Página de login com adição da frase e link
+    if 'user' in session:
+        return redirect(url_for('home'))  # Redireciona para a página principal se já estiver logado
     return '''
     <!DOCTYPE html>
     <html lang="en">
@@ -48,48 +42,61 @@ def login():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login</title>
         <style>
-            body {
+            body {{
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 height: 100vh;
                 margin: 0;
                 flex-direction: column;
+            }}
+            .content {{
                 text-align: center;
-            }
-            .contact-info {
-                margin-top: 20px;
-            }
-            .contact-info a {
-                color: blue; /* Cor do link */
-                text-decoration: underline; /* Sublinhado para o link */
-            }
+            }}
+            .author-link {{
+                color: #0088cc;
+                text-decoration: none;
+                font-weight: bold;
+            }}
         </style>
     </head>
     <body>
-        <h2>Login</h2>
-        <form method="POST">
-            <label for="username">Nome de Usuário:</label>
-            <input type="text" id="username" name="username" required>
-            <button type="submit">Login</button>
-        </form>
-        <div class="contact-info">
-            <p>Para ter acesso entre em contato:</p>
-            <p><a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
+        <div class="content">
+            <h1>Login</h1>
+            <form action="/login" method="post">
+                <label for="username">Usuário:</label><br>
+                <input type="text" id="username" name="username" required><br><br>
+                <button type="submit">Login</button>
+            </form>
+            <p>Para acessar entre em contato:</p>
+            <a class="author-link" href="https://t.me/Keno_venas" target="_blank">Keno Venas</a>
         </div>
     </body>
     </html>
     '''
 
-@app.route('/')
+# Rota de autenticação
+@app.route('/login', methods=['POST'])
+def authenticate():
+    username = request.form['username']
+    if username in allowed_users:
+        session['user'] = username
+        return redirect(url_for('home'))
+    return '''
+    <h1>Usuário não autorizado!</h1>
+    <a href="/">Voltar para o login</a>
+    '''
+
+# Rota para a página principal que exibe a chave após login
+@app.route('/home')
 def home():
-    if 'username' not in session:
-        return redirect(url_for('login'))  # Redireciona para a página de login
-    
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
-    
+
     return f'''
     <!DOCTYPE html>
     <html lang="en">
@@ -154,13 +161,41 @@ def home():
             <p>{key_data["key"]}</p>
         </div>
 
+        <!-- Script da Hydro -->
+        <script id="hydro_config" type="text/javascript">
+            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
+        </script>
+        <script id="hydro_script" src="https://track.hydro.online/"></script>
 
+        <!-- anuncios -->
+        <div class="ad-banner">
+            <script type="text/javascript">
+                atOptions = {{
+                    'key' : '78713e6d4e36d5a549e9864674183de6',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {{}}
+                }};
+            </script>
+            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
+        </div>
+        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
     '''
 
+# Rota para fazer logout
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
 @app.route('/validate', methods=['POST'])
 def validate_key():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 403
+
     data = request.get_json()
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
