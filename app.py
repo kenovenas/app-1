@@ -52,7 +52,7 @@ def login():
         <h2>Login</h2>
         <form method="POST" action="/login">
             <label for="username">Usuário:</label>
-            <input type="text" id="username" name="username">
+            <input type="text" id="username" name="username" required>
             <button type="submit">Entrar</button>
         </form>
     </body>
@@ -160,6 +160,10 @@ def home():
 
 @app.route('/validate', methods=['POST'])
 def validate_key():
+    # Verifica se o usuário está logado
+    if 'username' not in session:
+        return jsonify({"valid": False, "error": "Usuário não autenticado"}), 401
+    
     data = request.get_json()
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
