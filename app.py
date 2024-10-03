@@ -1,42 +1,15 @@
 from flask import Flask, request, jsonify, render_template_string
-from flask_cors import CORS  # Importar CORS
 import secrets
 import time
 
 app = Flask(__name__)
-application = app
 
-# Armazenamento para chave, timestamp e usuários permitidos
+# Armazenamento para chave, timestamp e usuário
 key_data = {
     "key": None,
-    "timestamp": None
+    "timestamp": None,
+    "user": None
 }
-
-# Usuários permitidos
-allowed_users = {"pstfr", 
-                 "emda",
-                 "wndrsn",
-                "thglm",
-                "emrsnc",
-                "cslxnd",
-                "wlsn",
-                "edrd",
-                "vttb",
-                "tmmz",
-                "wltr",
-                 "crtntt",
-                 "wndrsn",
-                 "rcrd",
-                 "ndrtx",
-                 "vttbt",
-                 "mrn",
-                 "rflcr",
-                 "cnt",
-                 "wbss",
-                 "zr1",
-                 "nbsbt",
-                 
-                }  # Adicione os usuários permitidos aqui
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -51,128 +24,73 @@ def is_key_valid():
             return True
     return False
 
-@app.route('/')
+# Página de login e exibição da chave
+@app.route('/', methods=['GET', 'POST'])
 def home():
-     if not is_key_valid()::
-        username = request.form.get('username')
-        if username in allowed_users:  # Verifica se o usuário está na lista permitida
-            if not is_key_valid():
-                key_data["key"] = generate_key()
-                key_data["timestamp"] = time.time()
-             return f'''
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Access Key</title>
-                <style>
-                    body {{
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                        position: relative;
-                        flex-direction: column;
-                    }}
-                    .content {{
-                        text-align: center;
-                        margin-top: 20px;
-                    }}
-                    .author {{
-                        position: absolute;
-                        top: 10px;
-                        left: 10px;
-                        color: #000;
-                        font-size: 18px;
-                    }}
-                    .banner-telegram {{
-                        position: absolute;
-                        top: 10px;
-                        right: 10px;
-                        background-color: #0088cc;
-                        padding: 10px;
-                        border-radius: 5px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    }}
-                    .banner-telegram a {{
-                        color: #ffcc00;
-                        text-decoration: none;
-                        font-weight: bold;
-                    }}
-                    .ad-banner {{
-                        width: 728px;
-                        height: 90px;
-                        background-color: #f4f4f4;
-                        padding: 10px;
-                        text-align: center;
-                        position: fixed;
-                        bottom: 0;
-                        box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="author">Autor = Keno Venas</div>
-                <div class="banner-telegram">
-                    <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
-                </div>
-                <div class="content">
-                    <h1>Access Key</h1>
-                    <p>{key_data["key"]}</p>
-                </div>
-            </body>
-            </html>
-            ''')
-        else:
-            return "Acesso negado"
+    if request.method == 'POST':
+        user = request.form.get('username')
+        if user:
+            # Armazenar o nome do usuário e gerar uma nova chave
+            key_data["user"] = user
+            key_data["key"] = generate_key()
+            key_data["timestamp"] = time.time()
 
-    return '''
+    user_logged_in = key_data["user"] is not None
+
+    return render_template_string('''
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login</title>
+        <title>Access Key</title>
         <style>
-            .telegram-button {{
-                background-color: #0088cc;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                margin-top: 20px;
-                cursor: pointer;
+            body {{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                flex-direction: column;
+                font-family: Arial, sans-serif;
             }}
-            .telegram-button:hover {{
-                background-color: #005f99;
+            .content {{
+                text-align: center;
+            }}
+            .author {{
+                position: absolute;
+                bottom: 10px;
+                color: #000;
+                font-size: 16px;
+            }}
+            a {{
+                color: #0088cc;
+                text-decoration: none;
             }}
         </style>
     </head>
     <body>
-        <h1>Digite seu usuário</h1>
-        <form method="POST">
-            <input type="text" name="username" required>
-            <button type="submit">Acessar</button>
-        </form>
-        <p>Entrar em contato para ter acesso:</p>
-        <a href="https://t.me/Keno_venas" target="_blank" class="telegram-button">Keno Venas</a>
+        <div class="content">
+            {% if not user_logged_in %}
+                <h1>Login</h1>
+                <form method="POST">
+                    <label for="username">Usuário:</label><br>
+                    <input type="text" id="username" name="username" required><br><br>
+                    <button type="submit">Confirmar</button>
+                </form>
+                <p>Para ter acesso, entre em contato com <a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
+            {% else %}
+                <h1>Bem-vindo, {{ key_data['user'] }}</h1>
+                <p>Sua chave de acesso é:</p>
+                <p><strong>{{ key_data['key'] }}</strong></p>
+            {% endif %}
+        </div>
+        <div class="author">
+            <p>Autor: <a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
+        </div>
     </body>
     </html>
-    '''
-
-@app.route('/validate', methods=['POST'])
-def validate_key():
-    data = request.get_json()
-    if 'key' in data:
-        if data['key'] == key_data['key'] and is_key_valid():
-            return jsonify({"valid": True}), 200
-    return jsonify({"valid": False}), 401
+    ''', user_logged_in=user_logged_in, key_data=key_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
