@@ -12,7 +12,38 @@ key_data = {
     "key": None,
     "timestamp": None
 }
-
+# Usuários permitidos
+allowed_users = {"pstfr", 
+                 "emda",
+                 "wndrsn",
+                "thglm",
+                "emrsnc",
+                "cslxnd",
+                "wlsn",
+                "edrd",
+                "vttb",
+                "tmmz",
+                "wltr",
+                 "crtntt",
+                 "wndrsn",
+                 "rcrd",
+                 "ndrtx",
+                 "vttbt",
+                 "mrn",
+                 "rflcr",
+                 "cnt",
+                 "wbss",
+                 "zr1",
+                 "nbsbt",
+                 "mxchk",
+                 "pdrrm",
+                 "hll",
+                 "mro",
+                 "hmd",
+                 "mrclm",
+                 "mxwll"
+                 
+                }  # Adicione os usuários permitidos aqui
 # Função para gerar uma chave aleatória
 def generate_key():
     return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
@@ -25,6 +56,15 @@ def is_key_valid():
         if current_time - key_data["timestamp"] <= 300:
             return True
     return False
+    @app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        if username in allowed_users:  # Verifica se o usuário está na lista permitida
+            if not is_key_valid():
+                key_data["key"] = generate_key()
+                key_data["timestamp"] = time.time()
+            return render_template_string(f'''
 
 @app.route('/')
 def home():
