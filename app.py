@@ -92,6 +92,14 @@ def login():
                 text-decoration: none;
                 font-weight: bold;
             }
+            .telegram-group {
+                margin-top: 10px;
+            }
+            .telegram-group a {
+                color: #ffcc00;
+                text-decoration: none;
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
@@ -105,10 +113,15 @@ def login():
                 <p>Para acessar entre em contato:</p>
                 <a class="author-link" href="https://t.me/Keno_venas" target="_blank">Keno Venas</a>
             </div>
+            <div class="telegram-group">
+                <p>Grupo do Telegram:</p>
+                <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Crypto Faucets</a>
+            </div>
         </div>
     </body>
     </html>
     '''
+
 
 
 # Rota para autenticação
