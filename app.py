@@ -1,17 +1,20 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, redirect, url_for
 from flask_cors import CORS  # Importar CORS
 import secrets
 import time
 
 app = Flask(__name__)
 CORS(app)  # Ativar CORS
-application = app
+app.secret_key = 'sua_chave_secreta'  # Adicione uma chave secreta para as sessões
 
 # Armazenamento para chave e seu timestamp
 key_data = {
     "key": None,
     "timestamp": None
 }
+
+# Array de usuários permitidos
+allowed_users = ['usuario1', 'usuario2', 'usuario3']  # Adicione seus usuários aqui
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -26,11 +29,48 @@ def is_key_valid():
             return True
     return False
 
+# Rota de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        # Verifica se o nome de usuário está na lista de usuários permitidos
+        if username in allowed_users:
+            session['username'] = username
+            return redirect(url_for('home'))  # Redireciona para a página principal
+        else:
+            return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
+    
+    # Página de login
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+    </head>
+    <body>
+        <h2>Login</h2>
+        <form method="POST">
+            <label for="username">Nome de Usuário:</label>
+            <input type="text" id="username" name="username" required>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+    </html>
+    '''
+
+# Rota principal
 @app.route('/')
 def home():
+    if 'username' not in session:
+        return redirect(url_for('login'))  # Redireciona para a página de login se não estiver logado
+    
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
+    
     return f'''
     <!DOCTYPE html>
     <html lang="en">
