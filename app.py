@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS  # Importar CORS
 import secrets
 import time
@@ -7,10 +7,11 @@ app = Flask(__name__)
 CORS(app)  # Ativar CORS
 application = app
 
-# Armazenamento para chave e seu timestamp
+# Armazenamento para chave, timestamp e login de usuário
 key_data = {
     "key": None,
-    "timestamp": None
+    "timestamp": None,
+    "user": None
 }
 
 # Função para gerar uma chave aleatória
@@ -26,12 +27,19 @@ def is_key_valid():
             return True
     return False
 
-@app.route('/')
+# Página de login e exibição da chave
+@app.route('/', methods=['GET', 'POST'])
 def home():
-    if not is_key_valid():
-        key_data["key"] = generate_key()
-        key_data["timestamp"] = time.time()
-    return f'''
+    if request.method == 'POST':
+        user = request.form.get('username')
+        if user:
+            key_data["user"] = user
+            key_data["key"] = generate_key()
+            key_data["timestamp"] = time.time()
+
+    user_logged_in = key_data["user"] is not None
+
+    return render_template_string('''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -90,9 +98,20 @@ def home():
         <div class="banner-telegram">
             <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
         </div>
+
         <div class="content">
+            {% if not user_logged_in %}
+            <h1>Login</h1>
+            <form method="POST">
+                <label for="username">Usuário:</label><br>
+                <input type="text" id="username" name="username" required><br><br>
+                <button type="submit">Confirmar</button>
+            </form>
+            <p>Para ter acesso, entre em contato com <a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
+            {% else %}
             <h1>Access Key</h1>
-            <p>{key_data["key"]}</p>
+            <p>{{ key_data["key"] }}</p>
+            {% endif %}
         </div>
 
         <!-- Script da Hydro -->
@@ -117,7 +136,7 @@ def home():
         <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
-    '''
+    ''', user_logged_in=user_logged_in, key_data=key_data)
 
 @app.route('/validate', methods=['POST'])
 def validate_key():
