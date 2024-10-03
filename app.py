@@ -4,15 +4,39 @@ import secrets
 import time
 
 app = Flask(__name__)
-CORS(app)  # Ativar CORS
 application = app
 
-# Armazenamento para chave, timestamp e login de usuário
+# Armazenamento para chave, timestamp e usuários permitidos
 key_data = {
     "key": None,
-    "timestamp": None,
-    "user": None
+    "timestamp": None
 }
+
+# Usuários permitidos
+allowed_users = {"pstfr", 
+                 "emda",
+                 "wndrsn",
+                "thglm",
+                "emrsnc",
+                "cslxnd",
+                "wlsn",
+                "edrd",
+                "vttb",
+                "tmmz",
+                "wltr",
+                 "crtntt",
+                 "wndrsn",
+                 "rcrd",
+                 "ndrtx",
+                 "vttbt",
+                 "mrn",
+                 "rflcr",
+                 "cnt",
+                 "wbss",
+                 "zr1",
+                 "nbsbt",
+                 
+                }  # Adicione os usuários permitidos aqui
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -27,116 +51,120 @@ def is_key_valid():
             return True
     return False
 
-# Página de login e exibição da chave
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        user = request.form.get('username')
-        if user:
-            key_data["user"] = user
-            key_data["key"] = generate_key()
-            key_data["timestamp"] = time.time()
+        username = request.form.get('username')
+        if username in allowed_users:  # Verifica se o usuário está na lista permitida
+            if not is_key_valid():
+                key_data["key"] = generate_key()
+                key_data["timestamp"] = time.time()
+            return render_template_string(f'''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Access Key</title>
+                <style>
+                    body {{
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        position: relative;
+                        flex-direction: column;
+                    }}
+                    .content {{
+                        text-align: center;
+                        margin-top: 20px;
+                    }}
+                    .author {{
+                        position: absolute;
+                        top: 10px;
+                        left: 10px;
+                        color: #000;
+                        font-size: 18px;
+                    }}
+                    .banner-telegram {{
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background-color: #0088cc;
+                        padding: 10px;
+                        border-radius: 5px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    }}
+                    .banner-telegram a {{
+                        color: #ffcc00;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }}
+                    .ad-banner {{
+                        width: 728px;
+                        height: 90px;
+                        background-color: #f4f4f4;
+                        padding: 10px;
+                        text-align: center;
+                        position: fixed;
+                        bottom: 0;
+                        box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="author">Autor = Keno Venas</div>
+                <div class="banner-telegram">
+                    <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
+                </div>
+                <div class="content">
+                    <h1>Access Key</h1>
+                    <p>{key_data["key"]}</p>
+                </div>
+            </body>
+            </html>
+            ''')
+        else:
+            return "Acesso negado"
 
-    user_logged_in = key_data["user"] is not None
-
-    return render_template_string('''
+    return '''
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Access Key</title>
+        <title>Login</title>
         <style>
-            body {{
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-                position: relative;
-                flex-direction: column;
-            }}
-            .content {{
-                text-align: center;
-                margin-top: 20px;
-            }}
-            .author {{
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                color: #000;
-                font-size: 18px;
-            }}
-            .banner-telegram {{
-                position: absolute;
-                top: 10px;
-                right: 10px;
+            .telegram-button {{
                 background-color: #0088cc;
-                padding: 10px;
+                color: white;
+                padding: 10px 20px;
+                border: none;
                 border-radius: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }}
-            .banner-telegram a {{
-                color: #ffcc00;
-                text-decoration: none;
-                font-weight: bold;
-            }}
-            .ad-banner {{
-                width: 728px;
-                height: 90px;
-                background-color: #f4f4f4;
-                padding: 10px;
                 text-align: center;
-                position: fixed;
-                bottom: 0;
-                box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 20px;
+                cursor: pointer;
+            }}
+            .telegram-button:hover {{
+                background-color: #005f99;
             }}
         </style>
     </head>
     <body>
-        <div class="author">Autor = Keno Venas</div>
-        <div class="banner-telegram">
-            <a href="https://t.me/+Mns6IsONSxliZDkx" target="_blank">Grupo do Telegram</a>
-        </div>
-
-        <div class="content">
-            {% if not user_logged_in %}
-            <h1>Login</h1>
-            <form method="POST">
-                <label for="username">Usuário:</label><br>
-                <input type="text" id="username" name="username" required><br><br>
-                <button type="submit">Confirmar</button>
-            </form>
-            <p>Para ter acesso, entre em contato com <a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
-            {% else %}
-            <h1>Access Key</h1>
-            <p>{{ key_data['key'] }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Script da Hydro -->
-        <script id="hydro_config" type="text/javascript">
-            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
-        </script>
-        <script id="hydro_script" src="https://track.hydro.online/"></script>
-
-        <!-- anuncios -->
-        <div class="ad-banner">
-            <script type="text/javascript">
-                atOptions = {{
-                    'key' : '78713e6d4e36d5a549e9864674183de6',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {{}}
-                }};
-            </script>
-            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
-        </div>
-        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
+        <h1>Digite seu usuário</h1>
+        <form method="POST">
+            <input type="text" name="username" required>
+            <button type="submit">Acessar</button>
+        </form>
+        <p>Entrar em contato para ter acesso:</p>
+        <a href="https://t.me/Keno_venas" target="_blank" class="telegram-button">Keno Venas</a>
     </body>
     </html>
-    ''', user_logged_in=user_logged_in, key_data=key_data)
+    '''
 
 @app.route('/validate', methods=['POST'])
 def validate_key():
