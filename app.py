@@ -51,15 +51,15 @@ def is_key_valid():
             return True
     return False
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
-    if request.method == 'POST':
+     if not is_key_valid()::
         username = request.form.get('username')
         if username in allowed_users:  # Verifica se o usuário está na lista permitida
             if not is_key_valid():
                 key_data["key"] = generate_key()
                 key_data["timestamp"] = time.time()
-            return render_template_string(f'''
+             return f'''
             <!DOCTYPE html>
             <html lang="en">
             <head>
