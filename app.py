@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, session, redirect, url_for
-from flask_cors import CORS  # Importar CORS
+from flask_cors import CORS
 import secrets
 import time
 
@@ -67,6 +67,7 @@ def home():
     if 'username' not in session:
         return redirect(url_for('login'))  # Redireciona para a página de login se não estiver logado
     
+    # Verifica se a chave é válida antes de gerá-la
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
@@ -165,6 +166,7 @@ def validate_key():
     if 'key' in data:
         if data['key'] == key_data['key'] and is_key_valid():
             return jsonify({"valid": True}), 200
+    print("Chave inválida ou expirada.")  # Mensagem de erro para debug
     return jsonify({"valid": False}), 401
 
 if __name__ == '__main__':
