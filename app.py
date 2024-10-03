@@ -110,7 +110,7 @@ def home():
             <p>Para ter acesso, entre em contato com <a href="https://t.me/Keno_venas" target="_blank">Keno Venas</a></p>
             {% else %}
             <h1>Access Key</h1>
-            <p>{{ key_data["key"] }}</p>
+            <p>{{ key_data['key'] }}</p>
             {% endif %}
         </div>
 
