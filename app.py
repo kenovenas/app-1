@@ -102,7 +102,7 @@ def home():
 
     user_access_count[username] += 1  # Incrementa o acesso do usuário
     
-    return f'''
+    return '''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -163,7 +163,7 @@ def home():
         </div>
         <div class="content">
             <h1>Access Key</h1>
-            <p>{key_data["key"]}</p>
+            <p>{}</p> <!-- Aqui vamos colocar a chave gerada -->
         </div>
 
         <!-- Script da Hydro -->
@@ -188,7 +188,7 @@ def home():
         <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
-    '''
+    '''.format(key_data["key"])  # Aqui insere a chave gerada
 
 @app.route('/validate', methods=['POST'])
 def validate_key():
