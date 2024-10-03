@@ -1,27 +1,30 @@
 from flask import Flask, request, redirect, url_for, session, jsonify
-from flask_cors import CORS
+from flask_cors import CORS  # Importar CORS
 import secrets
 import time
 
 app = Flask(__name__)
-CORS(app)
-app.secret_key = 'your_secret_key'
+CORS(app)  # Ativar CORS
+app.secret_key = 'your_secret_key'  # Necessário para usar sessões
 
+# Armazenamento para chave e seu timestamp
 key_data = {
     "key": None,
     "timestamp": None
 }
 
-user_access_count = {}
-allowed_users = ['user1', 'user2', 'Keno Venas']  
-MAX_ACCESS = 10
+# Array de usuários autorizados
+allowed_users = ['user1', 'user2', 'Keno Venas']  # Substitua por seus usuários autorizados
 
+# Função para gerar uma chave aleatória
 def generate_key():
-    return secrets.token_hex(16)
+    return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
 
+# Função para verificar se a chave ainda é válida
 def is_key_valid():
     if key_data["key"] and key_data["timestamp"]:
         current_time = time.time()
+        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
         if current_time - key_data["timestamp"] <= 300:
             return True
     return False
@@ -32,12 +35,11 @@ def login():
         username = request.form.get('username')
         if username in allowed_users:
             session['username'] = username
-            if username not in user_access_count:
-                user_access_count[username] = 0
-            return redirect(url_for('home'))
+            return redirect(url_for('home'))  # Redireciona para a página principal
         else:
-            return "Nome de usuário inválido", 401
+            return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
     
+    # Página de login com adição da frase e link
     return '''
     <!DOCTYPE html>
     <html lang="en">
@@ -59,8 +61,8 @@ def login():
                 margin-top: 20px;
             }
             .contact-info a {
-                color: blue; 
-                text-decoration: underline; 
+                color: blue; /* Cor do link */
+                text-decoration: underline; /* Sublinhado para o link */
             }
         </style>
     </head>
@@ -81,28 +83,14 @@ def login():
 
 @app.route('/')
 def home():
-    # Sempre redireciona para login se não houver usuário na sessão
     if 'username' not in session:
-        return redirect(url_for('login')) 
+        return redirect(url_for('login'))  # Redireciona para a página de login
     
-    username = session['username']
-
-    # Verifica a contagem de acessos do usuário
-    if username not in user_access_count:
-        user_access_count[username] = 0
-
-    # Se o limite de acessos for atingido
-    if user_access_count[username] >= MAX_ACCESS:
-        return "Acesso negado: limite de chaves solicitadas atingido.", 403
-
-    # Gera uma nova chave se a chave não for válida
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
-
-    user_access_count[username] += 1  # Incrementa o acesso do usuário
     
-    return '''
+    return f'''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -163,32 +151,13 @@ def home():
         </div>
         <div class="content">
             <h1>Access Key</h1>
-            <p>{}</p> <!-- Aqui vamos colocar a chave gerada -->
+            <p>{key_data["key"]}</p>
         </div>
 
-        <!-- Script da Hydro -->
-        <script id="hydro_config" type="text/javascript">
-            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
-        </script>
-        <script id="hydro_script" src="https://track.hydro.online/"></script>
 
-        <!-- anuncios -->
-        <div class="ad-banner">
-            <script type="text/javascript">
-                atOptions = {{
-                    'key' : '78713e6d4e36d5a549e9864674183de6',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {{}} 
-                }};
-            </script>
-            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
-        </div>
-        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
-    '''.format(key_data["key"])  # Aqui insere a chave gerada
+    '''
 
 @app.route('/validate', methods=['POST'])
 def validate_key():
