@@ -28,7 +28,7 @@ def is_key_valid():
             return True
     return False
 
-# Rota para a página de login
+# Página de login
 @app.route('/')
 def login():
     return '''
@@ -72,22 +72,25 @@ def login():
     </html>
     '''
 
-# Rota de autenticação
+# Rota para autenticação
 @app.route('/login', methods=['POST'])
 def authenticate():
     username = request.form['username']
     if username in allowed_users:
-        return redirect(url_for('home'))
-    return '''
-    <h1>Usuário não autorizado!</h1>
-    <a href="/">Voltar para o login</a>
-    '''
+        # Redireciona para a página de exibição da chave com o parâmetro logged_in
+        return redirect(url_for('home', logged_in=True))
+    else:
+        return '''
+        <h1>Usuário não autorizado!</h1>
+        <a href="/">Voltar para o login</a>
+        '''
 
-# Rota para a página principal que exibe a chave após login
+# Rota da página que exibe a chave, acessível apenas após login
 @app.route('/home')
 def home():
-    # Como não mantemos sessões, precisamos verificar o login toda vez
-    if request.referrer is None or not request.referrer.endswith('/login'):
+    # Verifica se o parâmetro logged_in está presente na requisição
+    logged_in = request.args.get('logged_in', None)
+    if logged_in != 'True':  # Redireciona para o login se o parâmetro não for encontrado
         return redirect(url_for('login'))
 
     if not is_key_valid():
@@ -134,7 +137,7 @@ def home():
     </html>
     '''
 
-# Rota para validar a chave (usado pela Tampermonkey script, por exemplo)
+# Rota para validar a chave (para o script Tampermonkey, por exemplo)
 @app.route('/validate', methods=['POST'])
 def validate_key():
     data = request.get_json()
