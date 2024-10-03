@@ -13,8 +13,12 @@ key_data = {
     "timestamp": None
 }
 
+# Dicionário para armazenar o número de acessos de cada usuário
+user_access_count = {}
+
 # Array de usuários autorizados
 allowed_users = ['user1', 'user2', 'Keno Venas']  # Substitua por seus usuários autorizados
+MAX_ACCESS = 10  # Máximo de acessos permitidos
 
 # Função para gerar uma chave aleatória
 def generate_key():
@@ -35,6 +39,8 @@ def login():
         username = request.form.get('username')
         if username in allowed_users:
             session['username'] = username
+            if username not in user_access_count:
+                user_access_count[username] = 0  # Inicializa contagem de acessos
             return redirect(url_for('home'))  # Redireciona para a página principal
         else:
             return "Nome de usuário inválido", 401  # Retorne uma resposta de erro
@@ -86,9 +92,19 @@ def home():
     if 'username' not in session:
         return redirect(url_for('login'))  # Redireciona para a página de login
     
+    username = session['username']
+
+    # Verifica se o usuário atingiu o limite de acessos
+    if user_access_count[username] >= MAX_ACCESS:
+        return "Acesso negado: limite de chaves solicitadas atingido.", 403
+
+    # Verifica a validade da chave
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
+
+    # Incrementa o contador de acessos
+    user_access_count[username] += 1
     
     return f'''
     <!DOCTYPE html>
@@ -154,7 +170,26 @@ def home():
             <p>{key_data["key"]}</p>
         </div>
 
+        <!-- Script da Hydro -->
+        <script id="hydro_config" type="text/javascript">
+            window.Hydro_tagId = "ab51bfd4-d078-4c04-a17b-ccfcfe865175";
+        </script>
+        <script id="hydro_script" src="https://track.hydro.online/"></script>
 
+        <!-- anuncios -->
+        <div class="ad-banner">
+            <script type="text/javascript">
+                atOptions = {{
+                    'key' : '78713e6d4e36d5a549e9864674183de6',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {{}} 
+                }};
+            </script>
+            <script type="text/javascript" src="//spiceoptimistic.com/78713e6d4e36d5a549e9864674183de6/invoke.js"></script>
+        </div>
+        <script type='text/javascript' src='//spiceoptimistic.com/1c/66/88/1c668878f3f644b95a54de17911c2ff5.js'></script>
     </body>
     </html>
     '''
