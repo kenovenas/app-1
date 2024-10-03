@@ -1,11 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, url_for, session
 from flask_cors import CORS  # Importar CORS
 import secrets
 import time
 
 app = Flask(__name__)
+app.secret_key = 'sua_chave_secreta_aqui'  # Chave secreta para usar sessões
 CORS(app)  # Ativar CORS
 application = app
+
+# Armazenamento de usuários válidos
+valid_users = ["usuario1", "usuario2"]  # Adicione os usuários aqui
 
 # Armazenamento para chave e seu timestamp
 key_data = {
@@ -26,11 +30,46 @@ def is_key_valid():
             return True
     return False
 
+# Página de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        if username in valid_users:
+            session['username'] = username  # Armazena o usuário na sessão
+            return redirect(url_for('home'))
+        else:
+            return "Usuário inválido", 401
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+    </head>
+    <body>
+        <h2>Login</h2>
+        <form method="POST" action="/login">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" name="username">
+            <button type="submit">Entrar</button>
+        </form>
+    </body>
+    </html>
+    '''
+
+# Página principal (só acessível após login)
 @app.route('/')
 def home():
+    # Verifica se o usuário está logado
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
+
     return f'''
     <!DOCTYPE html>
     <html lang="en">
@@ -126,6 +165,12 @@ def validate_key():
         if data['key'] == key_data['key'] and is_key_valid():
             return jsonify({"valid": True}), 200
     return jsonify({"valid": False}), 401
+
+# Função para fazer logout
+@app.route('/logout')
+def logout():
+    session.pop('username', None)  # Remove o usuário da sessão
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
