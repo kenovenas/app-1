@@ -81,22 +81,26 @@ def login():
 
 @app.route('/')
 def home():
+    # Sempre redireciona para login se não houver usuário na sessão
     if 'username' not in session:
         return redirect(url_for('login')) 
     
     username = session['username']
 
+    # Verifica a contagem de acessos do usuário
     if username not in user_access_count:
         user_access_count[username] = 0
 
+    # Se o limite de acessos for atingido
     if user_access_count[username] >= MAX_ACCESS:
         return "Acesso negado: limite de chaves solicitadas atingido.", 403
 
+    # Gera uma nova chave se a chave não for válida
     if not is_key_valid():
         key_data["key"] = generate_key()
         key_data["timestamp"] = time.time()
 
-    user_access_count[username] += 1
+    user_access_count[username] += 1  # Incrementa o acesso do usuário
     
     return f'''
     <!DOCTYPE html>
