@@ -27,6 +27,9 @@ def is_key_valid():
 # Página de login e exibição da chave
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    # Variável que indicará se o usuário já fez login
+    user_logged_in = key_data["user"] is not None
+
     if request.method == 'POST':
         user = request.form.get('username')
         if user:
@@ -34,8 +37,7 @@ def home():
             key_data["user"] = user
             key_data["key"] = generate_key()
             key_data["timestamp"] = time.time()
-
-    user_logged_in = key_data["user"] is not None
+            user_logged_in = True  # Atualizar o estado do login
 
     return render_template_string('''
     <!DOCTYPE html>
