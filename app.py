@@ -1,32 +1,55 @@
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
+import sqlite3
 import secrets
 import time
 
 app = Flask(__name__)
 CORS(app)
 
-# Armazenamento para chave e seu timestamp
-key_data = {
-    "key": None,
-    "timestamp": None
-}
-
-# Lista de usuários permitidos
-allowed_users = ["user1", "user2", "kenovenas"]
+# Conectar ao banco de dados SQLite
+def connect_db():
+    conn = sqlite3.connect('keys.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS keys
+                      (id INTEGER PRIMARY KEY, key TEXT, timestamp REAL)''')
+    conn.commit()
+    return conn
 
 # Função para gerar uma chave aleatória
 def generate_key():
     return secrets.token_hex(16)  # Gera uma chave hexadecimal de 16 bytes
 
+# Função para armazenar a chave no banco de dados
+def store_key(key, timestamp):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO keys (key, timestamp) VALUES (?, ?)', (key, timestamp))
+    conn.commit()
+    conn.close()
+
+# Função para recuperar a chave do banco de dados
+def get_key():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT key, timestamp FROM keys ORDER BY id DESC LIMIT 1')
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
 # Função para verificar se a chave ainda é válida
 def is_key_valid():
-    if key_data["key"] and key_data["timestamp"]:
+    key_data = get_key()
+    if key_data:
+        stored_key, stored_timestamp = key_data
         current_time = time.time()
-        # Verifica se a chave ainda é válida (5 minutos = 300 segundos)
-        if current_time - key_data["timestamp"] <= 300:
-            return True
-    return False
+        # Verifica se a chave ainda é válida (24 horas = 86400 segundos)
+        if current_time - stored_timestamp <= 86400:
+            return True, stored_key
+    return False, None
+
+# Lista de usuários permitidos
+allowed_users = ["user1", "user2", "kenovenas"]
 
 @app.route('/')
 def login():
@@ -122,14 +145,10 @@ def login():
     </html>
     '''
 
-
-
-# Rota para autenticação
 @app.route('/login', methods=['POST'])
 def authenticate():
     username = request.form['username']
     if username in allowed_users:
-        # Redireciona para a página de exibição da chave com o parâmetro logged_in
         return redirect(url_for('home', logged_in=True))
     else:
         return '''
@@ -137,17 +156,17 @@ def authenticate():
         <a href="/">Voltar para o login</a>
         '''
 
-# Rota da página que exibe a chave, acessível apenas após login
 @app.route('/home')
 def home():
-    # Verifica se o parâmetro logged_in está presente na requisição
     logged_in = request.args.get('logged_in', None)
-    if logged_in != 'True':  # Redireciona para o login se o parâmetro não for encontrado
+    if logged_in != 'True':
         return redirect(url_for('login'))
 
-    if not is_key_valid():
-        key_data["key"] = generate_key()
-        key_data["timestamp"] = time.time()
+    valid, stored_key = is_key_valid()
+    if not valid:
+        new_key = generate_key()
+        store_key(new_key, time.time())
+        stored_key = new_key
 
     return f'''
     <!DOCTYPE html>
@@ -183,19 +202,18 @@ def home():
         <div class="author">Autor: Keno Venas</div>
         <div class="content">
             <h1>Access Key</h1>
-            <p>{key_data["key"]}</p>
+            <p>{stored_key}</p>
         </div>
     </body>
     </html>
     '''
 
-# Rota para validar a chave (para o script Tampermonkey, por exemplo)
 @app.route('/validate', methods=['POST'])
 def validate_key():
     data = request.get_json()
-    if 'key' in data:
-        if data['key'] == key_data['key'] and is_key_valid():
-            return jsonify({"valid": True}), 200
+    valid, stored_key = is_key_valid()
+    if 'key' in data and data['key'] == stored_key and valid:
+        return jsonify({"valid": True}), 200
     return jsonify({"valid": False}), 401
 
 if __name__ == '__main__':
