@@ -26,8 +26,14 @@ usuarios_autorizados = {"pstfr",
                  "cnt",
                  "wbss",
                  "zr1",
-                        "venas",
-                 "nbsbt",}  # Adicione seus usuários aqui
+                 "nbsbt",
+                 "mxchk",
+                 "pdrrm",
+                 "venas",
+                 "mro",
+                 "hmd",
+                 "mrclm",
+                 "mxwll"}  # Adicione seus usuários aqui
 
 @app.route('/validar_usuario', methods=['POST'])
 def validar_usuario():
