@@ -34,6 +34,7 @@ usuarios_autorizados = {"pstfr",
                  "hmd",
                  "mrclm",
                  "mxwll",
+                 "nmmr",
                 }  # Adicione seus usuários aqui
 
 @app.route('/validar_usuario', methods=['POST'])
