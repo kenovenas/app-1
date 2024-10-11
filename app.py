@@ -36,6 +36,7 @@ usuarios_autorizados = {"pstfr",
                  "mxwll",
                  "nmmr",
                         "mts",
+                        "jncmps",
                  
                 }  # Adicione seus usuários aqui
 
