@@ -1,18 +1,20 @@
-fetch('https://app-1-885k.onrender.com/authorize', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ username: 'nome' }),  // Altere para o nome de usuário atual
-})
-.then(response => response.json())
-.then(data => {
-    if (data.status === 'success') {
-        console.log('Usuário autorizado:', data.message);
-    } else {
-        console.log('Erro de autorização:', data.message);
-    }
-})
-.catch((error) => {
-    console.error('Erro:', error);
-});
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Configurações do usuário autorizado
+AUTHORIZED_USER = "nome_do_usuario"  # Altere para o nome de usuário desejado
+
+@app.route('/authorize', methods=['POST'])
+def authorize():
+    data = request.get_json()
+    username = data.get('username')
+
+    if username == AUTHORIZED_USER:
+        # Enviar confirmação para a extensão
+        return jsonify({'message': 'Usuário autorizado', 'status': 'success'}), 200
+    else:
+        return jsonify({'message': 'Usuário não autorizado', 'status': 'error'}), 403
+
+if __name__ == '__main__':
+    app.run(debug=True)
