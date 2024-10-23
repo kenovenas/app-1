@@ -5,15 +5,8 @@ app = Flask(__name__)
 CORS(app)  # Permitir CORS
 
 # Lista de usuários autorizados
-usuarios_autorizados = {"pstfr", 
-                 "emda",
-                 "wndrsn",
-                "thglm",
-                "emrsnc",
-                "cslxnd",
-                "wlsn",
-                "edrd",
-                "vttb",
+usuarios_autorizados = {
+  "fiel",
                 "tmmz",
                 "wltr",
                  "crtntt",
