@@ -1,9 +1,9 @@
-fetch('https://<SEU_ENDPOINT_DO_RENDER>/authorize', {
+fetch('https://app-1-885k.onrender.com/authorize', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ username: 'user' }), // Substitua pelo nome do usuário
+    body: JSON.stringify({ username: 'nome_do_usuario' }), // Substitua pelo nome do usuário
 })
 .then(response => response.json())
 .then(data => {
