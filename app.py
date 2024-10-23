@@ -1,25 +1,27 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+// Exemplo de código para enviar solicitação POST
+function authenticateUser(username) {
+    fetch('http://localhost:5000/auth', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message); // Verifique a resposta do servidor
+        if (data.access) {
+            // Acesso concedido, execute funções da extensão
+            console.log("Acesso concedido.");
+        } else {
+            // Acesso negado
+            console.log("Acesso negado.");
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+    });
+}
 
-app = Flask(__name__)
-
-# Habilitar CORS
-CORS(app)
-
-# Lista de usuários permitidos
-allowed_users = {"usuario1", "usuario2"}
-
-# Endpoint para autenticação
-@app.route('/auth', methods=['POST'])
-def authenticate():
-    data = request.json
-    username = data.get('username')
-
-    # Verifica se o usuário está na lista de permitidos
-    if username in allowed_users:
-        return jsonify({"message": "Acesso concedido", "access": True}), 200
-    else:
-        return jsonify({"message": "Acesso negado", "access": False}), 403
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+// Exemplo de chamada da função
+authenticateUser('usuario1'); // Substitua pelo usuário desejado
