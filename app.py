@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Habilitar CORS
+CORS(app)
 
 # Lista de usuários permitidos
 allowed_users = {"usuario1", "usuario2"}
