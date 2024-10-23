@@ -3,10 +3,10 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Configurações do usuário autorizado
-AUTHORIZED_USER = "nome_do_usuario"  # Altere para o nome de usuário desejado
+AUTHORIZED_USER = "nome"  # Altere para o nome de usuário desejado
 
-@app.route('/authorize', methods=['POST'])
-def authorize():
+@app.route('/validar_usuario', methods=['POST'])
+def validar_usuario():
     data = request.get_json()
     username = data.get('username')
 
