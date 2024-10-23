@@ -1,6 +1,6 @@
 // Exemplo de código para enviar solicitação POST
 function authenticateUser(username) {
-    fetch('http://localhost:5000/auth', {
+    fetch('https://app-1-885k.onrender.com', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
