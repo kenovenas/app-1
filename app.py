@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para todas as rotas
 
 # Configurações do usuário autorizado
 AUTHORIZED_USER = "nome"  # Altere para o nome de usuário desejado
