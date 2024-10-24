@@ -5,7 +5,33 @@ app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
 
 # Lista de usuários autorizados (substitua por um banco de dados em produção)
-usuarios_autorizados = ["usuario1", "usuario2", "Keno Venas"]
+usuarios_autorizados = ["fiel",
+                "tmmz",
+                "wltr",
+                 "crtntt",
+                 "wndrsn",
+                 "rcrd",
+                 "ndrtx",
+                 "vttbt",
+                 "mrn",
+                 "rflcr",
+                 "cnt",
+                 "wbss",
+                 "zr1",
+                 "nbsbt",
+                 "mxchk",
+                 "pdrrm",
+                 "kauan",
+                 "mro",
+                 "hmd",
+                 "mrclm",
+                 "mxwll",
+                 "nmmr",
+                        "mts",
+                        "jncmps",
+                        "dnln",
+                       "ok1698",
+                       ]
 
 @app.route('/validar_usuario', methods=['POST'])
 def validar_usuario():
