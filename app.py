@@ -6,17 +6,10 @@ CORS(app)  # Habilita CORS para todas as rotas
 
 # Lista de usuários autorizados (substitua por um banco de dados em produção)
 usuarios_autorizados = ["fiel",
-                "tmmz",
                 "ok6675",
                  "crtntt",
-                 "wndrsn",
-                 "rcrd",
-                 "ndrtx",
                  "ok3286",
-                 "mrn",
                  "ok1390",
-                 "cnt",
-                 "wbss",
                  "zr1",
                  "nbsbt",
                  "mxchk",
@@ -33,6 +26,8 @@ usuarios_autorizados = ["fiel",
                         "ok0091",
                         "ok0908",
                         "ok2508",
+                        "ok2956",
+                        "ok1203",
                        ]
 
 @app.route('/validar_usuario', methods=['POST'])
