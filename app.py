@@ -4,20 +4,18 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
 
-# Configurações do usuário autorizado
-AUTHORIZED_USER = "nome"  # Altere para o nome de usuário desejado
+# Lista de usuários autorizados (substitua por um banco de dados em produção)
+usuarios_autorizados = ["usuario1", "usuario2", "Keno Venas"]
 
 @app.route('/validar_usuario', methods=['POST'])
 def validar_usuario():
     data = request.get_json()
-    username = data.get('username')
+    usuario = data.get('usuario')
 
-    if username == AUTHORIZED_USER:
-        # Enviar confirmação para a extensão
-        return jsonify({'message': 'Usuário autorizado', 'status': 'success'}), 200
+    if usuario in usuarios_autorizados:
+        return jsonify({'autorizado': True}), 200
     else:
-        return jsonify({'message': 'Usuário não autorizado', 'status': 'error'}), 403
+        return jsonify({'autorizado': False}), 403  # Forbidden
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    
+    app.run(host='0.0.0.0', port=5000)
