@@ -1,9 +1,14 @@
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
+
+# Configuração de logging para garantir que as mensagens apareçam no console do Render
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Lista de usuários autorizados
 usuarios_autorizados = [
@@ -19,16 +24,15 @@ def validar_usuario():
 
     # Verifica se o usuário é autorizado
     if usuario in usuarios_autorizados:
-        # Imprime no console o usuário autorizado e o horário da requisição
-        print(f"[{datetime.now()}] Usuário autorizado: {usuario}")
+        # Usa logging para registrar o usuário autorizado e o horário da requisição
+        logging.info(f"Usuário autorizado: {usuario}")
         return jsonify({'autorizado': True}), 200
     else:
-        # Imprime no console a tentativa de acesso não autorizada
-        print(f"[{datetime.now()}] Tentativa de acesso negada para o usuário: {usuario}")
+        # Usa logging para registrar a tentativa de acesso não autorizada
+        logging.warning(f"Tentativa de acesso negada para o usuário: {usuario}")
         return jsonify({'autorizado': False}), 403  # Forbidden
 
 if __name__ == '__main__':
-    # Certifique-se de que a porta está configurada para ser dinâmica no Render
-    import os
+    # Configura a porta para leitura dinâmica, conforme exigido pelo Render
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
