@@ -7,7 +7,6 @@ CORS(app)  # Habilita CORS para todas as rotas
 # Lista de usuários autorizados (substitua por um banco de dados em produção)
 usuarios_autorizados = ["fiel",
                 "ok6675",
-                 "crtntt",
                  "ok3286",
                  "ok1390",
                  "zr1",
