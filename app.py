@@ -18,26 +18,22 @@ usuarios_autorizados = [
 
 @app.route('/validar_usuario', methods=['POST'])
 def validar_usuario():
-    # Loga a requisição inteira para inspeção
     logging.info("Recebida uma nova requisição no endpoint '/validar_usuario'")
 
     data = request.get_json()
 
-    # Confirmação se o JSON foi recebido corretamente
     if not data:
         logging.warning("Nenhum dado JSON recebido na requisição.")
         return jsonify({'erro': 'Nenhum dado JSON enviado.'}), 400
 
     usuario = data.get('usuario')
     
-    # Verifica se 'usuario' está presente no JSON e registra
     if usuario:
         logging.info(f"Nome do usuário recebido: {usuario}")
     else:
         logging.warning("Nenhum usuário fornecido na requisição.")
         return jsonify({'erro': 'Campo de usuário ausente.'}), 400
 
-    # Autorização e logs detalhados
     if usuario in usuarios_autorizados:
         logging.info(f"Usuário autorizado: {usuario}")
         return jsonify({'autorizado': True}), 200
@@ -46,6 +42,5 @@ def validar_usuario():
         return jsonify({'autorizado': False}), 403
 
 if __name__ == '__main__':
-    # Configuração da porta dinâmica para o Render
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
