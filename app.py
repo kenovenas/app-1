@@ -10,11 +10,31 @@ logging.basicConfig(level=logging.INFO)
 
 # Lista de usuários autorizados
 usuarios_autorizados = [
-    "fiel", "ok6675", "crtntt", "ok3286", "ok1390",
-    "zr1", "nbsbt", "mxchk", "pdrrm", "mro",
-    "hmd", "mrclm", "mxwll", "nmmr", "mts",
-    "jncmps", "dnln", "ok1698", "ok0091", "ok0908",
-    "ok2508", "ok2956", "ok1203"
+    "ok6675",
+                 "ok3286",
+                 "ok1390",
+                 "zr1",
+                 "mro",
+                 "hmd",
+                 "mrclm",
+                 "mxwll",
+                 "nmmr",
+                        "mts",
+                        "jncmps",
+                        "dnln",
+                       "ok1698",
+                        "ok0091",
+                        "ok0908",
+                        "ok2508",
+                        "ok2956",
+                        "ok1203",
+                        "ok9019",
+                        "ok4004",
+                        "ok1999",
+                        "ok1982",
+                         "ok0198",
+    "ok1001",
+    "ok2090",
 ]
 
 @app.route('/validar_usuario', methods=['POST'])
