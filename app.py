@@ -27,6 +27,7 @@ usuarios_autorizados = ["fiel",
                         "ok9019",
                         "ok4004",
                         "ok1999",
+                        "ok1982",
                        ]
 
 @app.route('/validar_usuario', methods=['POST'])
