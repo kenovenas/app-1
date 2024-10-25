@@ -22,13 +22,11 @@ def validar_usuario():
     data = request.get_json()
     usuario = data.get('usuario')
 
-    # Verifica se o usuário é autorizado
+    # Verifica se o usuário é autorizado e loga o nome do usuário
     if usuario in usuarios_autorizados:
-        # Usa logging para registrar o usuário autorizado e o horário da requisição
         logging.info(f"Usuário autorizado: {usuario}")
         return jsonify({'autorizado': True}), 200
     else:
-        # Usa logging para registrar a tentativa de acesso não autorizada
         logging.warning(f"Tentativa de acesso negada para o usuário: {usuario}")
         return jsonify({'autorizado': False}), 403  # Forbidden
 
