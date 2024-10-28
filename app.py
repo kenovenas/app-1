@@ -18,6 +18,7 @@ usuarios_autorizados = [
                  "mrclm",
                  "mxwll",
                  "nmmr",
+    "nbsbt",
                         "mts",
                         "jncmps",
                         "dnln",
