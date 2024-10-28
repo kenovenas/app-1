@@ -15,7 +15,6 @@ usuarios_autorizados = [
                  "ok1390",
                  "zr1",
                  "mro",
-                 "hmd",
                  "mrclm",
                  "mxwll",
                  "nmmr",
