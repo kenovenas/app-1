@@ -36,6 +36,7 @@ usuarios_autorizados = [
     "ok1001",
     "ok2090",
     "ok0902",
+    "ok1516",
     "admin"
 ]
 
