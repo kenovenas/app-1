@@ -14,7 +14,7 @@ usuarios_autorizados = [
     "nbsbt", "ok1698", "ok0091", "ok5178",
     "ok0908", "ok2508", "ok2956", "ok1203", "ok9019", "ok4004", 
     "ok1999", "ok1982", "ok0198", "ok1001", "ok2090", "ok0902", 
-    "ok1516", "ok1101", "admin", "bete", "leda",
+    "ok1516", "ok1101", "admin", "bete", 
 ]
 
 # Dicionário para rastrear visitas dos usuários
