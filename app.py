@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 # Lista de usuários autorizados
 usuarios_autorizados = [
      "ok1390", "ok1203", "ok6675", "ok1999", "ok1820",
-  "ok1001", "ok0908", "ok9019", "ok5178",
+  "ok1001", "ok0908", "ok9019", "ok5178", "0k1880",
       "ok3286", "ok2956", "ok1698", "ok3003", "ok9988",
     "ok1982", "ok9904", "ok2508", "ok0198",
     "ok1516", "admin", "bete", 
