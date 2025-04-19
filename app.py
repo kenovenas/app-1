@@ -1,39 +1,24 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import logging
+from telethon import TelegramClient, events
 
-app = Flask(__name__)
-CORS(app)  # Habilita CORS para todas as rotas
+api_id = 20225004
+api_hash = "8f4c78e858658cd2aa21967a087bf819"
+session_name = "session_telegram"
 
-# Configura o logging
-logging.basicConfig(level=logging.INFO)
+origem_id = -1002590813877
+destino_id = -1002656975250
 
-# Lista de usuários autorizados
-usuarios_autorizados = [
-     "ok1390", "ok1203", "ok6675", "ok1999", "ok1820",
-  "ok1001", "ok0908", "ok9019", "ok5178", "0k1880",
-      "ok3286", "ok2956", "ok1698", "ok3003", "ok9988",
-    "ok1982", "ok9904", "ok2508", "ok0198",
-    "ok1516", "admin", "bete", 
-]
+client = TelegramClient(session_name, api_id, api_hash)
 
-# Dicionário para rastrear visitas dos usuários
-contador_visitas = {usuario: 0 for usuario in usuarios_autorizados}
+@client.on(events.NewMessage(chats=origem_id))
+async def encaminhar_mensagem(event):
+    await client.forward_messages(destino_id, event.message)
 
-@app.route('/validar_usuario', methods=['POST'])
-def validar_usuario():
-    data = request.get_json()
-    usuario = data.get('usuario')
+print("Bot rodando...")
+client.start()
+client.run_until_disconnected()
 
-    if usuario in usuarios_autorizados:
-        # Incrementa o contador de visitas
-        contador_visitas[usuario] += 1
-        visitas = contador_visitas[usuario]
-        logging.info(f"Usuário autorizado: {usuario} - Visitas: {visitas}")  # Log do nome do usuário e contagem de visitas
-        return jsonify({'autorizado': True, 'visitas': visitas}), 200
-    else:
-        logging.warning(f"Tentativa de acesso não autorizada: {usuario}")  # Log de acesso não autorizado
-        return jsonify({'autorizado': False}), 403  # Forbidden
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+
+
+
+add forwarder script
